@@ -4,7 +4,7 @@ Run with:  streamlit run app.py
 """
 
 import logging
-
+from pathlib import Path
 import streamlit as st
 
 from analyzer import clean_transactions, monthly_summary, overall_summary, spend_by_category
@@ -20,27 +20,39 @@ st.set_page_config(page_title="PDF Statement Analyser", layout="wide")
 st.title("PDF Statement Analyser")
 st.write("Upload a bank statement PDF to see where the money came from and where it went.")
 
+st.caption("Demo only. Please don't upload your real bank statement. Use the sample statement instead.")
+
+SAMPLE_PDF = Path(__file__).parent / "sample_statement.pdf"
+
 uploaded_file = st.file_uploader("Upload statement (PDF)", type="pdf")
 
-if uploaded_file is None:
-    st.info("Waiting for a PDF. You can try the app with sample_statement.pdf.")
-    st.stop()
+if st.button("Try with sample statement"):
+    st.session_state["use_sample"] = True
 
+if uploaded_file is not None:
+    pdf_source = uploaded_file
+    file_name = uploaded_file.name
+elif st.session_state.get("use_sample"):
+    pdf_source = SAMPLE_PDF
+    file_name = SAMPLE_PDF.name
+else:
+    st.info("Upload a PDF, or click 'Try with sample statement' to see a demo.")
+    st.stop()
 try:
-    raw = extract_transactions(uploaded_file)
+    raw = extract_transactions(pdf_source)
     df = clean_transactions(raw)
 except ValueError as error:
     # Expected problems (no table, missing column) - show a clear message.
-    logger.error("Could not process %s: %s", uploaded_file.name, error)
+    logger.error("Could not process %s: %s", file_name, error)
     st.error(str(error))
     st.stop()
 except Exception:
     # Anything unexpected - log full details, show a simple message to the user.
-    logger.exception("Unexpected failure while processing %s", uploaded_file.name)
+    logger.exception("Unexpected failure while processing %s", file_name)
     st.error("Something went wrong while reading this PDF. Please check the file and try again.")
     st.stop()
 
-logger.info("Processed %s: %d clean transaction(s)", uploaded_file.name, len(df))
+logger.info("Processed %s: %d clean transaction(s)", file_name, len(df))
 
 summary = overall_summary(df)
 col1, col2, col3, col4 = st.columns(4)
