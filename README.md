@@ -1,5 +1,7 @@
 # PDF Statement Analyser
 
+**Live demo:** https://pdf-statement-analyzer.streamlit.app
+
 Upload a bank statement PDF and get a clean transaction table, spending by category and a month-by-month summary.
 
 ## How it works
