@@ -1,5 +1,17 @@
 streamlit
 pandas
 pdfplumber
+pytesseract
+Pillow
+numpy
+openpyxl
+xlrd
+python-docx
 reportlab
+langchain-core
+langchain-groq
+fastapi
+uvicorn
+python-multipart
+httpx
 pytest
